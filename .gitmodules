@@ -1,0 +1,6 @@
+[submodule "SimplicityHL"]
+	path = SimplicityHL
+	url = https://github.com/BlockstreamResearch/SimplicityHL.git
+[submodule "hal-simplicity"]
+	path = hal-simplicity
+	url = https://github.com/BlockstreamResearch/hal-simplicity.git
