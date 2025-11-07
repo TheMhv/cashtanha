@@ -1,0 +1,64 @@
+fn sha2(string: u256) -> u256 {
+    let hasher: Ctx8 = jet::sha_256_ctx_8_init();
+    let hasher: Ctx8 = jet::sha_256_ctx_8_add_32(hasher, string);
+    jet::sha_256_ctx_8_finalize(hasher)
+}
+
+fn sha2_sign(string: [u8; 64]) -> u256 {
+    let hasher: Ctx8 = jet::sha_256_ctx_8_init();
+    let hasher: Ctx8 = jet::sha_256_ctx_8_add_64(hasher, string);
+    jet::sha_256_ctx_8_finalize(hasher)
+}
+
+// Claim by token and signature for token and timelock
+fn claim_by_token(token: u256, signature: [u8; 64], expectedHash: u256) {
+    // Check expected hash
+    let hash: u256 = sha2(token);
+    assert!(jet::eq_256(hash, expectedHash));
+
+    // Check timelock
+    // let timeout: Height = 17280;
+    // assert!(jet::check_lock_height(timeout));
+
+    // Check signature
+    let david_pubk: u256 = 0x337cca2171fdbfcfd657fa59881f46269f1e590b5ffab6023686c7ad2ecc2c1c;
+    jet::bip_0340_verify((david_pubk, token), signature)
+}
+
+// RIGHT
+// The challenge is prove that you have the newest merkle tree
+
+fn calcLeaf(left: u256, right: u256) -> u256 {
+    let hasher: Ctx8 = jet::sha_256_ctx_8_init();
+    let hasher: Ctx8 = jet::sha_256_ctx_8_add_32(hasher, left);
+    let hasher: Ctx8 = jet::sha_256_ctx_8_add_32(hasher, right);
+    jet::sha_256_ctx_8_finalize(hasher)
+}
+
+fn calcRoot(elt: u256, acc: u256) -> u256 {
+    let acc: u256 = calcLeaf(elt, acc);
+    acc
+}
+
+fn claim_by_proof(leaf: [u8; 64], proofs: [u256; 2], root: u256) {
+    let leafValue: u256 = sha2_sign(leaf);
+    let s: u256 = array_fold::<calcRoot, 2>(proofs, leafValue);
+    assert!(jet::eq_256(s, root));
+}
+
+// LEFT = Spend by token, signed x and locktime
+// RIGHT = Spend by Merkle Proof with locktime
+fn main() {
+    match witness::SPEND {
+        Left(token_and_signature: (u256, [u8; 64])) => {
+            let (token, signature): (u256, [u8; 64]) = token_and_signature;
+            let expectedHash: u256 = 0x3034f1d855651180a6ae0ab3fb46c2b87501297e491e665a097f2f7d4ef5c835;
+            claim_by_token(token, signature, expectedHash)
+        },
+        Right(leaf_and_proofs_and_root: (([u8; 64], [u256; 2]), u256)) => {
+            let (leaf_and_proofs, root): (([u8; 64], [u256; 2]), u256) = leaf_and_proofs_and_root;
+            let (leaf, proofs): ([u8; 64], [u256; 2]) = leaf_and_proofs;
+            claim_by_proof(leaf, proofs, root)
+        },
+    }
+}

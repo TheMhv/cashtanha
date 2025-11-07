@@ -1,0 +1,6 @@
+{
+    "SPEND": {
+        "value": "Left((0x337cca2171fdbfcfd657fa59881f46269f1e590b5ffab6023686c7ad2ecc2c1c, 0x56842ad7994c934bfc19bc77604617f480dba60c4b0d8db57220e3990395c4f3696d41101d5faa0b0d1b0688bddd12bd34b22351ac41d2d0632cc20d5dd8fcdc))",
+        "type": "Either<(u256, Signature), ((Signature, [u256; 2]), u256)>"
+    }
+}
